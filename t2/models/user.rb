@@ -3,6 +3,8 @@ class User < ActiveRecord::Base
 
   before_create :initialize_cart
 
+  validates :name, presence: true
+
   private
 
   def initialize_cart

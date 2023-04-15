@@ -1,6 +1,6 @@
 class CartProduct < ActiveRecord::Base
-  belongs_to :cart
-  belongs_to :product
+  belongs_to :cart, required: true
+  belongs_to :product, required: true
 
   before_create :set_total_value
 

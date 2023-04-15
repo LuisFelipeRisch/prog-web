@@ -1,7 +1,7 @@
 require 'pry'
 require 'minitest/autorun'
 require 'active_record'
-require_relative '../scripts/create_database_test.rb'
+require_relative '../scripts/create_database.rb'
 require_relative '../models/user.rb'
 require_relative '../models/cart.rb'
 require_relative '../models/store.rb'

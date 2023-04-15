@@ -1,7 +1,7 @@
 require 'pry'
 require 'minitest/autorun'
 require 'active_record'
-require_relative '../scripts/create_database_test.rb'
+require_relative '../scripts/create_database.rb'
 require_relative '../models/user.rb'
 require_relative '../models/cart.rb'
 require_relative '../models/store.rb'
@@ -60,6 +60,9 @@ class StoreTest < Minitest::Test
 
     assert store.products.exists?(id: product.id)
 
+    store.destroy
+
+    refute Product.exists?(store: store)
   end
 end
 

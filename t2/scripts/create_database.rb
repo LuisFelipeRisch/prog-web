@@ -1,7 +1,7 @@
 require 'rubygems'
 require 'active_record'
 
-ActiveRecord::Base.establish_connection :adapter => "sqlite3", :database => "database/dev.sqlite3"
+ActiveRecord::Base.establish_connection :adapter => "sqlite3", :database => "database/#{ENV['RUBY-ENV'] == 'test' ? "test.sqlite3" : "dev.sqlite3"}"
 
 if !ActiveRecord::Base.connection.table_exists? 'users'
   ActiveRecord::Base.connection.create_table :users do |t|

@@ -3,6 +3,8 @@ class Store < ActiveRecord::Base
 
   validates :name, presence: true
 
+  scope :search_with_filter, lambda { |filter| where(filter) }
+
   def introduce_itself(gap: '')
     puts "#{gap}Loja ##{self.id}"
     puts "#{gap}\t- Nome: #{self.name}"
@@ -16,13 +18,17 @@ class Store < ActiveRecord::Base
     "Tabela de Lojas"
   end
 
+  def self.editable_columns
+    %w[name description]
+  end
+
   def self.columns_explanation
     {
-      id: "Identificador único da loja",
+      id: "Identificador único da loja - (NÃO EDITÁVEL)",
       name: "Nome da loja",
       description: "Descrição da loja",
-      created_at: "Data e hora qua loja foi criada",
-      updated_at: "Data e hora da última vez que a loja foi atualizada"
+      created_at: "Data e hora qua loja foi criada - (NÃO EDITÁVEL)",
+      updated_at: "Data e hora da última vez que a loja foi atualizada - (NÃO EDITÁVEL)"
     }
   end
 

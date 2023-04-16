@@ -5,6 +5,8 @@ class User < ActiveRecord::Base
 
   validates :name, presence: true
 
+  scope :search_with_filter, lambda { |filter| where(filter) }
+
   def introduce_itself(gap: '')
     puts "#{gap}Usuário ##{self.id}"
     puts "#{gap}\t- Nome: #{self.name}"
@@ -14,7 +16,7 @@ class User < ActiveRecord::Base
     self.cart.cart_products.find_each do |cart_product|
       product = cart_product.product
 
-      product.introduce_itself(gap: "#{gap}\t\t", should_show_owner: true)
+      product.introduce_itself(gap: "#{gap}\t\t")
     end
   end
 
@@ -22,13 +24,17 @@ class User < ActiveRecord::Base
     "Tabela de Usuários"
   end
 
+  def self.editable_columns
+    %w[name email]
+  end
+
   def self.columns_explanation
     {
-      id: "Identificador Único do usuário",
+      id: "Identificador Único do usuário - (NÃO EDITÁVEL)",
       name: "Nome do usuário",
       email: "Email do usuário",
-      created_at: "Data e hora que usuário foi criado",
-      updated_at: "Data e hora da última vez que o usuário foi atualizado"
+      created_at: "Data e hora que usuário foi criado - (NÃO EDITÁVEL)",
+      updated_at: "Data e hora da última vez que o usuário foi atualizado - (NÃO EDITÁVEL)"
     }
   end
 

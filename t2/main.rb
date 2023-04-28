@@ -1,6 +1,5 @@
 ENV['RUBY-ENV'] = 'dev'
 
-require 'pry'
 require 'active_record'
 require_relative 'scripts/create_database.rb'
 require_relative 'models/user.rb'

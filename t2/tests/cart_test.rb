@@ -1,4 +1,4 @@
-require 'pry'
+
 require 'minitest/autorun'
 require 'active_record'
 require_relative '../scripts/create_database.rb'

@@ -2,16 +2,11 @@ const canvas = document.getElementById("myCanvas");
 const ctx = canvas.getContext("2d");
 
 // Define the line
-const line = {
-  x1: 50,
-  y1: 50,
-  x2: 200,
-  y2: 200,
-};
+let lines = [
+  buildLineObject(50, 50, 200, 200)
+]
 
-// Flag to track which end of the line is being dragged
-let draggingStart = false;
-let draggingEnd = false;
+let currentLine = null;
 let prevMouse = null;
 
 // Add event listeners
@@ -21,6 +16,7 @@ canvas.addEventListener("mouseup", handleMouseUp);
 window.addEventListener("resize", handleWindowResize);
 
 handleWindowResize();
+drawLines()
 
 function handleWindowResize() {
   // Get the maximum width and height of the window
@@ -35,45 +31,79 @@ function handleWindowResize() {
 function handleMouseDown(event) {
   const mouse = getMousePosition(event);
 
-  if (isMouseOnLine(mouse, line) && isMouseOnTheMiddleOfTheLine(mouse, line)) {
-    console.log(true);
-    draggingStart = true;
-    draggingEnd = true;
-  }
-  if (isMouseNearPoint(mouse, line.x1, line.y1)) {
-    draggingStart = true;
-  } else if (isMouseNearPoint(mouse, line.x2, line.y2)) {
-    draggingEnd = true;
+  if(event.button === 2) {
+    lines.forEach((line, index) => {
+      if(isMouseOnLine(mouse, line)){
+        const newLines = []
+
+        newLines.push(buildLineObject(line.x1, line.y1, mouse.x, mouse.y))
+        newLines.push(buildLineObject(mouse.x, mouse.y, line.x2, line.y2))
+
+        lines.splice(index, 1);
+
+        lines = lines.concat(newLines)
+
+        return;
+      }
+    });
+  } else if (event.button === 0) {
+    lines.forEach(line => {
+      if (isMouseOnLine(mouse, line) && isMouseOnTheMiddleOfTheLine(mouse, line)) {
+        line.draggingStart = true;
+        line.draggingEnd = true;
+
+        currentLine = line;
+
+        return;
+      }
+      if (isMouseNearPoint(mouse, line.x1, line.y1)) {
+        line.draggingStart = true;
+
+        currentLine = line;
+
+        return;
+      } else if (isMouseNearPoint(mouse, line.x2, line.y2)) {
+        line.draggingEnd = true;
+
+        currentLine = line;
+
+        return;
+      }
+    });
   }
 }
 
 function handleMouseMove(event) {
+
+  if(!currentLine)
+    return;
+
   const mouse = getMousePosition(event);
 
   // Check which end of the line is being dragged and update its position
-  if (draggingStart && draggingEnd) {
+  if (currentLine.draggingStart && currentLine.draggingEnd) {
     if (prevMouse) {
-      line.x1 += mouse.x - prevMouse.x;
-      line.y1 += mouse.y - prevMouse.y;
-      line.x2 += mouse.x - prevMouse.x;
-      line.y2 += mouse.y - prevMouse.y;
+      currentLine.x1 += mouse.x - prevMouse.x;
+      currentLine.y1 += mouse.y - prevMouse.y;
+      currentLine.x2 += mouse.x - prevMouse.x;
+      currentLine.y2 += mouse.y - prevMouse.y;
     }
-  } else if (draggingStart) {
-    line.x1 = mouse.x;
-    line.y1 = mouse.y;
-  } else if (draggingEnd) {
-    line.x2 = mouse.x;
-    line.y2 = mouse.y;
+  } else if (currentLine.draggingStart) {
+    currentLine.x1 = mouse.x;
+    currentLine.y1 = mouse.y;
+  } else if (currentLine.draggingEnd) {
+    currentLine.x2 = mouse.x;
+    currentLine.y2 = mouse.y;
   }
 
   prevMouse = mouse;
-  drawLine(line);
+  drawLines();
 }
 
 function handleMouseUp(event) {
   // Stop dragging
-  draggingStart = false;
-  draggingEnd = false;
+  currentLine.draggingStart = false;
+  currentLine.draggingEnd = false;
 }
 
 function getMousePosition(event) {
@@ -114,10 +144,25 @@ function isMouseOnLine(mouse, line) {
   return distanceToLine < 10; // Change this value to adjust the sensitivity
 }
 
-function drawLine(line) {
+function buildLineObject(x1, y1, x2, y2){
+  return {
+    x1: x1,
+    y1: y1,
+    x2: x2,
+    y2: y2,
+    draggingStart: false,
+    draggingEnd: false
+  }
+}
+
+function drawLines() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.beginPath();
-  ctx.moveTo(line.x1, line.y1);
-  ctx.lineTo(line.x2, line.y2);
+
+  lines.forEach(line => {
+    ctx.moveTo(line.x1, line.y1);
+    ctx.lineTo(line.x2, line.y2);
+  });
+
   ctx.stroke();
 }

@@ -24,7 +24,44 @@
         <a href="polygon.html">Trabalho 3 - Somente Poligono</a>
       </nav>
 
-      <main class="right-column"></main>
+      <main class="right-column">
+        <header>
+          <h1 class="text-center">Visualizeitor</h1>
+        </header>
+
+        <article>
+          <label for="students">Selecione o Aluno</label>
+          <select
+            name="students"
+            id="students"
+            onchange="handleStudentChanged(value)"
+          ></select>
+        </article>
+
+        <div class="separator"></div>
+
+        <article>
+          <table class="text-center subjects-table">
+            <thead>
+              <tr>
+                <th>1</th>
+                <th>2</th>
+                <th>3</th>
+                <th>4</th>
+                <th>5</th>
+                <th>6</th>
+                <th>7</th>
+                <th>8</th>
+              </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+          </table>
+        </article>
+
+        <div class="separator"></div>
+
+        <article id="subject-history"></article>
+      </main>
     </div>
 
     <footer class="footer text-center">

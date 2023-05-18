@@ -1,5 +1,49 @@
 const STUDENTS_DATA_PATH = "/data/students-data.json";
 const STUDENTS = [];
+const SUBJECTS = [
+  "CI068",
+  "CI210",
+  "CI212",
+  "CI215",
+  "CI162",
+  "CI163",
+  "CI221",
+  "OPT",
+  "CI055",
+  "CI056",
+  "CI057",
+  "CI062",
+  "CI065",
+  "CI165",
+  "CI211",
+  "OPT",
+  "CM046",
+  "CI067",
+  "CI064",
+  "CE003",
+  "CI059",
+  "CI209",
+  "OPT",
+  "OPT",
+  "CM045",
+  "CM005",
+  "CI237",
+  "CI058",
+  "CI061",
+  "CI218",
+  "OPT",
+  "OPT",
+  "CM201",
+  "CM202",
+  "CI166",
+  "CI164",
+  "SA214",
+  "CI220",
+  "TG I",
+  "TG II",
+];
+
+let selectedStudent;
 
 function buildStudent(studentData) {
   return {
@@ -52,20 +96,28 @@ function addSubjectToStudent(student, studentData) {
   });
 }
 
-function getStudentsData() {
-  const xmlHttp = new XMLHttpRequest();
+async function getStudentsData() {
+  return new Promise((resolve, reject) => {
+    const xmlHttp = new XMLHttpRequest();
 
-  xmlHttp.onreadystatechange = function () {
-    if (this.readyState == 4 && this.status == 200) {
-      const response = xmlHttp.responseText;
-      const data = JSON.parse(response);
+    xmlHttp.onreadystatechange = function () {
+      if (this.readyState == 4) {
+        if (this.status == 200) {
+          const response = xmlHttp.responseText;
+          const data = JSON.parse(response);
 
-      handleData(data);
-    }
-  };
+          handleData(data);
 
-  xmlHttp.open("GET", STUDENTS_DATA_PATH, true);
-  xmlHttp.send();
+          resolve();
+        } else {
+          reject(new Error("Failed to fetch students' data"));
+        }
+      }
+    };
+
+    xmlHttp.open("GET", STUDENTS_DATA_PATH, true);
+    xmlHttp.send();
+  });
 }
 
 function handleData(data) {
@@ -86,5 +138,129 @@ function handleData(data) {
   });
 }
 
-getStudentsData();
-console.log(STUDENTS);
+function fillStudentsSelect() {
+  const studentsInput = document.querySelector("#students");
+  let options = "";
+
+  STUDENTS.forEach((student) => {
+    options += `<option value="${student.student_code}">
+                  ${student.name} - ${student.student_code}
+                </option>`;
+  });
+
+  studentsInput.innerHTML = options;
+}
+
+function updateTable() {
+  const tbody = document.querySelector("#table-body");
+  let tableBodyContent = "";
+
+  for (let index = 0; index < SUBJECTS.length; index += 8) {
+    tableBodyContent += "<tr>";
+    for (let i = 0; i < 8; i++)
+      tableBodyContent += `
+                          <td
+                            oncontextmenu="handleRightClick(event, '${
+                              SUBJECTS[index + i]
+                            }')"
+                            onclick="handleLeftClick(event, '${
+                              SUBJECTS[index + i]
+                            }')">
+                          ${SUBJECTS[index + i]}
+                          </td>`;
+
+    tableBodyContent += "</tr>";
+  }
+
+  tbody.innerHTML = tableBodyContent;
+}
+
+function handleStudentChanged(studentGrr) {
+  selectedStudent = STUDENTS.find(
+    (student) => student["student_code"] == studentGrr
+  );
+
+  updateTable();
+}
+
+function handleLeftClick(event, subject_code) {
+  event.preventDefault();
+
+  const subjectHistoryHtmlTag = document.querySelector("#subject-history");
+  const subjectStudied = selectedStudent.subjects[subject_code];
+
+  let subjectHistoryHtmlTagContent = "";
+
+  if (!subjectStudied) {
+    subjectHistoryHtmlTagContent += `<h2>Não há histórico do aluno para a matéria de código: ${subject_code}</h2>`;
+  } else {
+    subjectHistoryHtmlTagContent += `<h2>Histórico de ${subjectStudied["name"]}(${subject_code})</h2>`;
+
+    subjectStudied["history"].forEach((subjectHistory, index) => {
+      subjectHistoryHtmlTagContent += `
+                                      <div>
+                                        <div>${index + 1}° vez</div>
+                                        <div>Ano: ${
+                                          subjectHistory["year_coursed"]
+                                        }</div>
+                                        <div>Semestre: ${
+                                          subjectHistory["semester_coursed"]
+                                        }</div>
+                                        <div>Nota final: ${
+                                          subjectHistory["grade"]
+                                        }</div>
+                                        <div>Frequência: ${
+                                          subjectHistory["frequency"]
+                                        }</div>
+                                        <div>Situação: ${
+                                          subjectHistory["status"]
+                                        }</div>
+                                      </div>
+                                      ${
+                                        index !=
+                                        subjectStudied["history"].length - 1
+                                          ? '<div class="separator"></div>'
+                                          : ""
+                                      }
+      `;
+    });
+  }
+
+  subjectHistoryHtmlTag.innerHTML = subjectHistoryHtmlTagContent;
+}
+
+function handleRightClick(event, subject_code) {
+  event.preventDefault();
+
+  const subjectCoursed = selectedStudent.subjects[subject_code];
+
+  if (!subjectCoursed) {
+    alert(
+      `${selectedStudent["name"]} - ${selectedStudent["student_code"]}\n
+      Não há histórico do aluno para a matéria: ${subject_code}
+      `
+    );
+  } else {
+    const lastTimeCoursed =
+      subjectCoursed["history"][subjectCoursed["history"].length - 1];
+
+    alert(
+      `${subject_code} - ${subjectCoursed["name"]}\n
+      Ano: ${lastTimeCoursed["year_coursed"]}\n
+      Semestre: ${lastTimeCoursed["semester_coursed"]}\n
+      Nota final: ${lastTimeCoursed["grade"]}\n
+      Frequência: ${lastTimeCoursed["frequency"]}\n
+      Situação: ${lastTimeCoursed["status"]}\n
+      `
+    );
+  }
+}
+
+getStudentsData()
+  .then(() => {
+    fillStudentsSelect();
+    handleStudentChanged(STUDENTS[0]["student_code"]);
+  })
+  .catch((error) => {
+    console.log(error);
+  });

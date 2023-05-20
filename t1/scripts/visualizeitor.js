@@ -151,24 +151,122 @@ function fillStudentsSelect() {
   studentsInput.innerHTML = options;
 }
 
+function getCellBackgroundColor(subjectHistory) {
+  if (!subjectHistory) return null;
+
+  const lastTimeCoursed = subjectHistory[subjectHistory.length - 1];
+
+  let backgroundColor;
+
+  switch (lastTimeCoursed["status"]) {
+    case "Aprovado":
+    case "Dispensa de Disciplinas (com nota)":
+      backgroundColor = "green";
+      break;
+    case "Equivalência de Disciplina":
+      backgroundColor = "orange";
+      break;
+    case "Reprovado por nota":
+    case "Reprovado por Frequência":
+    case "Cancelado":
+    case "Trancamento Administrativo":
+    case "Trancamento Total":
+      backgroundColor = "red";
+      break;
+    case "Matrícula":
+      backgroundColor = "blue";
+      break;
+    default:
+      backgroundColor = null;
+      break;
+  }
+
+  return backgroundColor;
+}
+
+function getOpts() {
+  const studentSubjects = selectedStudent.subjects;
+  const allStudentOpts = [];
+
+  for (let subjectCode in studentSubjects)
+    if (studentSubjects[subjectCode]["type"] == "Optativas")
+      allStudentOpts.push(subjectCode);
+
+  return allStudentOpts;
+}
+
+function getTgs() {
+  const studentSubjects = selectedStudent.subjects;
+  const allStudentTgs = {
+    tg1: [],
+    tg2: [],
+  };
+
+  for (let subjectCode in studentSubjects) {
+    if (studentSubjects[subjectCode]["type"] == "Trabalho de Graduação I")
+      allStudentTgs["tg1"].push(subjectCode);
+    else if (studentSubjects[subjectCode]["type"] == "Trabalho de Graduação II")
+      allStudentTgs["tg2"].push(subjectCode);
+  }
+
+  return allStudentTgs;
+}
+
 function updateTable() {
   const tbody = document.querySelector("#table-body");
+  const opts = getOpts();
+  const tgs = getTgs();
+
   let tableBodyContent = "";
 
   for (let index = 0; index < SUBJECTS.length; index += 8) {
     tableBodyContent += "<tr>";
-    for (let i = 0; i < 8; i++)
+    for (let i = 0; i < 8; i++) {
+      const currentSubject = SUBJECTS[index + i];
+      let actualCurrentSubject;
+
+      if (currentSubject === "OPT") {
+        let optCode;
+
+        if (opts.length > 0) {
+          optCode = opts.pop();
+        } else optCode = "OPT";
+
+        actualCurrentSubject = optCode;
+      } else if (currentSubject === "TG I") {
+        let tg1Code;
+
+        if (tgs["tg1"].length > 0) {
+          tg1Code = tgs["tg1"].pop();
+        } else tg1Code = "TG I";
+
+        actualCurrentSubject = tg1Code;
+      } else if (currentSubject === "TG II") {
+        let tg2Code;
+
+        if (tgs["tg2"].length > 0) {
+          tg2Code = tgs["tg2"].pop();
+        } else tg2Code = "TG II";
+
+        actualCurrentSubject = tg2Code;
+      } else actualCurrentSubject = currentSubject;
+
+      const subjectHistory =
+        selectedStudent.subjects[actualCurrentSubject]?.["history"];
+      const backgroundColor = getCellBackgroundColor(subjectHistory);
+
       tableBodyContent += `
                           <td
-                            oncontextmenu="handleRightClick(event, '${
-                              SUBJECTS[index + i]
-                            }')"
-                            onclick="handleLeftClick(event, '${
-                              SUBJECTS[index + i]
-                            }')">
-                          ${SUBJECTS[index + i]}
+                            ${
+                              backgroundColor
+                                ? `style="background-color: ${backgroundColor};"`
+                                : ""
+                            }
+                            oncontextmenu="handleRightClick(event, '${actualCurrentSubject}')"
+                            onclick="handleLeftClick(event, '${actualCurrentSubject}')">
+                          ${actualCurrentSubject}
                           </td>`;
-
+    }
     tableBodyContent += "</tr>";
   }
 
@@ -194,7 +292,7 @@ function handleLeftClick(event, subject_code) {
   if (!subjectStudied) {
     subjectHistoryHtmlTagContent += `<h2>Não há histórico do aluno para a matéria de código: ${subject_code}</h2>`;
   } else {
-    subjectHistoryHtmlTagContent += `<h2>Histórico de ${subjectStudied["name"]}(${subject_code})</h2>`;
+    subjectHistoryHtmlTagContent += `<h2>Histórico de ${subjectStudied["name"]}(${subject_code}) - ${subjectStudied["type"]}</h2>`;
 
     subjectStudied["history"].forEach((subjectHistory, index) => {
       subjectHistoryHtmlTagContent += `

@@ -185,17 +185,37 @@ function getCellBackgroundColor(subjectHistory) {
 }
 
 function getOpts() {
+  const desiredStatus = [
+    "Aprovado",
+    "Dispensa de Disciplinas (com nota)",
+    "Equivalência de Disciplina",
+    "Matrícula",
+  ];
   const studentSubjects = selectedStudent.subjects;
   const allStudentOpts = [];
 
-  for (let subjectCode in studentSubjects)
-    if (studentSubjects[subjectCode]["type"] == "Optativas")
+  for (let subjectCode in studentSubjects) {
+    const subject = studentSubjects[subjectCode];
+
+    if (
+      subject["type"] == "Optativas" &&
+      desiredStatus.includes(
+        subject["history"][subject["history"].length - 1]["status"]
+      )
+    )
       allStudentOpts.push(subjectCode);
+  }
 
   return allStudentOpts;
 }
 
 function getTgs() {
+  const desiredStatus = [
+    "Aprovado",
+    "Dispensa de Disciplinas (com nota)",
+    "Equivalência de Disciplina",
+    "Matrícula",
+  ];
   const studentSubjects = selectedStudent.subjects;
   const allStudentTgs = {
     tg1: [],
@@ -203,9 +223,21 @@ function getTgs() {
   };
 
   for (let subjectCode in studentSubjects) {
-    if (studentSubjects[subjectCode]["type"] == "Trabalho de Graduação I")
+    const subject = studentSubjects[subjectCode];
+
+    if (
+      subject["type"] == "Trabalho de Graduação I" &&
+      desiredStatus.includes(
+        subject["history"][subject["history"].length - 1]["status"]
+      )
+    )
       allStudentTgs["tg1"].push(subjectCode);
-    else if (studentSubjects[subjectCode]["type"] == "Trabalho de Graduação II")
+    else if (
+      subject["type"] == "Trabalho de Graduação II" &&
+      desiredStatus.includes(
+        subject["history"][subject["history"].length - 1]["status"]
+      )
+    )
       allStudentTgs["tg2"].push(subjectCode);
   }
 
@@ -273,11 +305,18 @@ function updateTable() {
   tbody.innerHTML = tableBodyContent;
 }
 
+function clearSubjectHistory() {
+  const subjectHistoryHtmlTag = document.querySelector("#subject-history");
+
+  subjectHistoryHtmlTag.innerHTML = "";
+}
+
 function handleStudentChanged(studentGrr) {
   selectedStudent = STUDENTS.find(
     (student) => student["student_code"] == studentGrr
   );
 
+  clearSubjectHistory();
   updateTable();
 }
 
